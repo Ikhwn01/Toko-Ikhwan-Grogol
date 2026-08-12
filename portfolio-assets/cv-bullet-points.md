@@ -9,7 +9,7 @@ Gunakan poin-poin terstruktur ini untuk memperbarui bagian **Pengalaman Proyek /
 ### Judul Proyek:
 **Pengembang Web Sistem Manajemen Toko & Peramalan Stok (Single Exponential Smoothing)**
 
-### Poin Deskripsi Pekerjaan (Pilih 3-5 poin sesuai kebutuhan):
+### Poin Deskripsi Pekerjaan :
 - Mengembangkan aplikasi web manajemen inventaris ritel dan kasir (POS) menggunakan **PHP Native** dan **MySQL**, dilengkapi dengan engine peramalan kebutuhan stok berbasis data historis penjualan.
 - Mengimplementasikan algoritma **Single Exponential Smoothing (SES)** dengan parameter pemulusan $\alpha$ fleksibel (0.1–0.9) untuk meramalkan estimasi stok barang periode berikutnya secara presisi.
 - Membangun modul evaluasi galat otomatis berbasis metrik matematika **MAD**, **MSE**, **MAPE**, dan **Akurasi %** guna mengukur keandalan nilai prediksi peramalan.
