@@ -1,105 +1,51 @@
 <?php
-include 'koneksi.php';
+session_start();
+include 'config/koneksi.php';
+include 'includes/ses-engine.php';
 
-$min_support = $_POST['support'] ?? 2;
-$min_confidence = $_POST['confidence'] ?? 50;
-
-/* AMBIL DATA TRANSAKSI */
-$query = mysqli_query($koneksi, "
-  SELECT kode_transaksi, nama_barang
-  FROM detail_transaksi
-  ORDER BY kode_transaksi
-");
-
-$transaksi = [];
-
-while($row = mysqli_fetch_assoc($query)){
-  $transaksi[$row['kode_transaksi']][] = $row['nama_barang'];
+if(isset($_POST['alpha'])){
+    $_SESSION['alpha'] = floatval($_POST['alpha']);
 }
 
-$totalTransaksi = count($transaksi);
+$alpha = $_SESSION['alpha'] ?? 0.2;
 
-/* HITUNG SUPPORT ITEM */
-$itemCount = [];
-
-foreach($transaksi as $items){
-  $items = array_unique($items);
-
-  foreach($items as $item){
-    if(!isset($itemCount[$item])){
-      $itemCount[$item] = 0;
-    }
-    $itemCount[$item]++;
-  }
-}
-
-/* HITUNG RULE A => B */
-$rules = [];
-
-foreach($transaksi as $items){
-  $items = array_unique($items);
-
-  foreach($items as $itemA){
-    foreach($items as $itemB){
-      if($itemA != $itemB){
-
-        $key = $itemA . "=>" . $itemB;
-
-        if(!isset($rules[$key])){
-          $rules[$key] = [
-            'antecedent' => $itemA,
-            'consequent' => $itemB,
-            'jumlah' => 0
-          ];
-        }
-
-        $rules[$key]['jumlah']++;
-      }
-    }
-  }
-}
-
-$hasilRules = [];
-
-foreach($rules as $rule){
-  $support = ($rule['jumlah'] / $totalTransaksi) * 100;
-  $confidence = ($rule['jumlah'] / $itemCount[$rule['antecedent']]) * 100;
-
-  if($rule['jumlah'] >= $min_support && $confidence >= $min_confidence){
-    $hasilRules[] = [
-      'antecedent' => $rule['antecedent'],
-      'consequent' => $rule['consequent'],
-      'jumlah' => $rule['jumlah'],
-      'support' => $support,
-      'confidence' => $confidence
-    ];
-  }
-}
+$hasil = hitungSES($koneksi, $alpha);
+$totalBarang = $hasil['totalBarang'];
+$dataSES     = $hasil['dataSES'];
 ?>
 
 <!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Data Mining Apriori</title>
+<title>Forecasting Single Exponential Smoothing (SES)</title>
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Arial;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial, Helvetica, sans-serif;}
 body{background:#f4f6f9;padding:30px;}
-.container{background:white;padding:30px;border-radius:15px;box-shadow:0 5px 15px rgba(0,0,0,0.1);}
+.container{background:white;padding:30px;border-radius:18px;box-shadow:0 5px 15px rgba(0,0,0,0.1);}
 .header-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:25px;}
 h1{color:#1f64e0;}
 .top-action a{background:#2d9cdb;color:white;text-decoration:none;padding:13px 22px;border-radius:12px;font-weight:bold;}
-.form-apriori{display:flex;gap:15px;align-items:end;background:#f8fbff;padding:20px;border-radius:12px;margin-bottom:25px;}
+.form-ses{display:flex;gap:15px;align-items:end;background:#f8fbff;padding:20px;border-radius:12px;margin-bottom:25px;}
 .form-group label{display:block;font-weight:bold;margin-bottom:8px;}
-.form-group input{padding:12px;border:1px solid #ccc;border-radius:10px;width:180px;}
-.btn-proses{background:#1f64e0;color:white;border:none;padding:12px 22px;border-radius:10px;font-weight:bold;cursor:pointer;}
-.info{background:#eef4ff;color:#1f64e0;padding:15px;border-radius:10px;margin-bottom:20px;font-weight:bold;}
-table{width:100%;border-collapse:collapse;margin-top:20px;}
-th{background:#1f64e0;color:white;padding:12px;border:1px solid #ddd;}
-td{padding:12px;border:1px solid #ddd;text-align:center;}
-.reset-box{margin-top:25px;}
-.reset-box a{background:#e74c3c;color:white;text-decoration:none;padding:12px 22px;border-radius:10px;font-weight:bold;}
+.form-group select{padding:12px;border:1px solid #ccc;border-radius:10px;width:220px;font-size:15px;}
+.btn-proses{background:#1f64e0;color:white;border:none;padding:12px 22px;border-radius:10px;font-weight:bold;cursor:pointer;transition:0.3s;}
+.btn-proses:hover{background:#174fb3;}
+.info{background:#eef4ff;color:#1f64e0;padding:18px;border-radius:12px;margin-bottom:25px;font-weight:bold;line-height:1.6;}
+.card-barang{background:#ffffff;border:1px solid #e1e8ed;border-radius:14px;padding:20px;margin-bottom:30px;box-shadow:0 3px 10px rgba(0,0,0,0.03);}
+.card-barang h2{color:#333;margin-bottom:12px;font-size:20px;display:flex;justify-content:space-between;align-items:center;}
+.badge{padding:6px 12px;border-radius:8px;font-size:14px;font-weight:bold;}
+.tinggi{color:#155724;background:#d4edda;}
+.rendah{color:#721c24;background:#f8d7da;}
+table{width:100%;border-collapse:collapse;margin-top:15px;margin-bottom:15px;}
+th{background:#1f64e0;color:white;padding:12px;border:1px solid #ddd;font-size:14px;}
+td{padding:12px;border:1px solid #ddd;text-align:center;font-size:14px;}
+.summary-grid{display:grid;grid-template-columns:repeat(4, 1fr);gap:15px;margin-top:15px;background:#f8f9fa;padding:15px;border-radius:10px;}
+.summary-item{text-align:center;}
+.summary-item .title{font-size:13px;color:#666;}
+.summary-item .val{font-size:18px;font-weight:bold;color:#1f64e0;margin-top:4px;}
+.rekom-box{background:#fff8e1;border-left:4px solid #ffc107;padding:12px 15px;margin-top:15px;border-radius:4px;font-weight:bold;color:#555;}
 </style>
 </head>
 
@@ -108,77 +54,108 @@ td{padding:12px;border:1px solid #ddd;text-align:center;}
 <div class="container">
 
 <div class="header-top">
-  <h1>Data Mining Apriori</h1>
+  <h1>Forecasting Single Exponential Smoothing (SES)</h1>
   <div class="top-action">
     <a href="dashboard.php">← Kembali ke Dashboard</a>
   </div>
 </div>
 
-<form method="POST" class="form-apriori">
+<form method="POST" class="form-ses">
   <div class="form-group">
-    <label>Minimum Support</label>
-    <input type="number" name="support" value="<?= $min_support; ?>" min="1">
+    <label>Nilai Alpha (&alpha;)</label>
+    <select name="alpha">
+      <option value="0.1" <?= ($alpha == 0.1) ? 'selected' : ''; ?>>0.1</option>
+      <option value="0.2" <?= ($alpha == 0.2) ? 'selected' : ''; ?>>0.2 (Default)</option>
+      <option value="0.3" <?= ($alpha == 0.3) ? 'selected' : ''; ?>>0.3</option>
+      <option value="0.4" <?= ($alpha == 0.4) ? 'selected' : ''; ?>>0.4</option>
+      <option value="0.5" <?= ($alpha == 0.5) ? 'selected' : ''; ?>>0.5</option>
+      <option value="0.6" <?= ($alpha == 0.6) ? 'selected' : ''; ?>>0.6</option>
+      <option value="0.7" <?= ($alpha == 0.7) ? 'selected' : ''; ?>>0.7</option>
+      <option value="0.8" <?= ($alpha == 0.8) ? 'selected' : ''; ?>>0.8</option>
+      <option value="0.9" <?= ($alpha == 0.9) ? 'selected' : ''; ?>>0.9</option>
+    </select>
   </div>
 
-  <div class="form-group">
-    <label>Minimum Confidence (%)</label>
-    <input type="number" name="confidence" value="<?= $min_confidence; ?>" min="1" max="100">
-  </div>
-
-  <button type="submit" class="btn-proses">Proses Apriori</button>
+  <button type="submit" class="btn-proses">Hitung Forecasting SES</button>
 </form>
 
 <div class="info">
-  Minimum Support: <?= $min_support; ?><br><br>
-  Minimum Confidence: <?= $min_confidence; ?>%<br><br>
-  Total Transaksi: <?= $totalTransaksi; ?>
+  Parameter Alpha (&alpha;): <b><?= $alpha; ?></b><br>
+  Rumus Perhitungan: <i>F<sub>t</sub> = &alpha; &middot; Y<sub>t-1</sub> + (1 - &alpha;) &middot; F<sub>t-1</sub></i><br>
+  Total Barang Diperhitungkan: <b><?= $totalBarang; ?> Barang</b>
 </div>
 
-<table>
-<thead>
-<tr>
-  <th>No</th>
-  <th>Aturan Asosiasi</th>
-  <th>Jumlah Transaksi Bersama</th>
-  <th>Support</th>
-  <th>Confidence</th>
-  <th>Rekomendasi</th>
-</tr>
-</thead>
-
-<tbody>
-<?php
-$no = 1;
-
-if(count($hasilRules) > 0){
-  foreach($hasilRules as $rule){
+<?php if(count($dataSES) > 0){
+  foreach($dataSES as $item){
 ?>
-<tr>
-  <td><?= $no++; ?></td>
-  <td>
-    Jika membeli <b><?= $rule['antecedent']; ?></b>,
-    maka membeli <b><?= $rule['consequent']; ?></b>
-  </td>
-  <td><?= $rule['jumlah']; ?></td>
-  <td><?= number_format($rule['support'],2); ?>%</td>
-  <td><?= number_format($rule['confidence'],2); ?>%</td>
-  <td>
-    Stok <?= $rule['consequent']; ?> perlu diperhatikan karena sering dibeli bersama <?= $rule['antecedent']; ?>.
-  </td>
-</tr>
-<?php }}else{ ?>
-<tr>
-  <td colspan="6">Belum ada aturan asosiasi yang memenuhi minimum support dan confidence.</td>
-</tr>
-<?php } ?>
-</tbody>
-</table>
+<div class="card-barang">
+  <h2>
+    <span>📦 <?= $item['nama_barang']; ?> <small style="font-weight:normal;color:#666;">(Stok Saat Ini: <?= $item['stok_saat_ini']; ?> <?= $item['jenis_barang']; ?>)</small></span>
+    <span class="badge <?= $item['class_status']; ?>"><?= $item['status']; ?></span>
+  </h2>
 
-<div class="reset-box">
-  <a href="reset-apriori.php" onclick="return confirm('Yakin ingin mereset data Apriori?')">
-    Reset Data Apriori
-  </a>
+  <?php if($item['n_periode'] > 0){ ?>
+  <table>
+    <thead>
+      <tr>
+        <th>Periode (t)</th>
+        <th>Tanggal</th>
+        <th>Penjualan Aktual (Y<sub>t</sub>)</th>
+        <th>Forecast (F<sub>t</sub>)</th>
+        <th>Error (e<sub>t</sub>)</th>
+        <th>|Error| (|e<sub>t</sub>|)</th>
+        <th>Squared Error (e<sub>t</sub><sup>2</sup>)</th>
+        <th>APE (%)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <?php foreach($item['detail'] as $d){ ?>
+      <tr>
+        <td><?= $d['periode']; ?></td>
+        <td><?= date('d-m-Y', strtotime($d['tanggal'])); ?></td>
+        <td><b><?= $d['aktual']; ?></b></td>
+        <td><?= number_format($d['forecast'], 2); ?></td>
+        <td><?= number_format($d['error'], 2); ?></td>
+        <td><?= number_format($d['abs_error'], 2); ?></td>
+        <td><?= number_format($d['sq_error'], 2); ?></td>
+        <td><?= number_format($d['pct_error'], 2); ?>%</td>
+      </tr>
+      <?php } ?>
+    </tbody>
+  </table>
+
+  <div class="summary-grid">
+    <div class="summary-item">
+      <div class="title">Forecast Periode Berikutnya (F<sub>n+1</sub>)</div>
+      <div class="val"><?= number_format($item['forecast_next'], 2); ?> (~<?= $item['prediksi_stok_unit']; ?> <?= $item['jenis_barang']; ?>)</div>
+    </div>
+    <div class="summary-item">
+      <div class="title">MAD (Mean Abs Error)</div>
+      <div class="val"><?= number_format($item['mad'], 2); ?></div>
+    </div>
+    <div class="summary-item">
+      <div class="title">MSE (Mean Sq Error)</div>
+      <div class="val"><?= number_format($item['mse'], 2); ?></div>
+    </div>
+    <div class="summary-item">
+      <div class="title">MAPE / Akurasi</div>
+      <div class="val"><?= number_format($item['mape'], 2); ?>% / <b><?= number_format($item['akurasi'], 2); ?>%</b></div>
+    </div>
+  </div>
+
+  <div class="rekom-box">
+    📌 Rekomendasi: <?= $item['rekomendasi']; ?>
+  </div>
+
+  <?php } else { ?>
+    <p style="color:gray; font-style:italic; margin-top:10px;">Belum ada riwayat transaksi penjualan untuk barang ini.</p>
+  <?php } ?>
 </div>
+<?php } } else { ?>
+  <div class="info" style="background:#fff3cd;color:#856404;">
+    Belum ada data barang tersedia untuk dihitung forecasting SES.
+  </div>
+<?php } ?>
 
 </div>
 

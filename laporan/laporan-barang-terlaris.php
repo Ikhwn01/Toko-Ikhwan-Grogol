@@ -1,5 +1,5 @@
 <?php
-include 'koneksi.php';
+include '../config/koneksi.php';
 
 date_default_timezone_set('Asia/Jakarta');
 
@@ -212,7 +212,7 @@ $data = mysqli_query($koneksi, "
 <div class="container">
 
   <div class="top-action">
-    <a href="laporan.php" class="btn btn-back">
+    <a href="../laporan.php" class="btn btn-back">
       ← Kembali ke Menu Laporan
     </a>
 
@@ -232,7 +232,7 @@ $data = mysqli_query($koneksi, "
     </div>
 
     <div class="kop-right">
-      <img src="assets/logo.png" alt="Logo">
+      <img src="../assets/logo.png" alt="Logo">
       <p>www.tokoikhwangrogol.com</p>
     </div>
   </div>

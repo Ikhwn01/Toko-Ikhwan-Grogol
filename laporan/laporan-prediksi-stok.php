@@ -1,5 +1,7 @@
 <?php
-include 'koneksi.php';
+session_start();
+include '../config/koneksi.php';
+include '../includes/ses-engine.php';
 
 date_default_timezone_set('Asia/Jakarta');
 
@@ -38,100 +40,27 @@ date('Y');
 
 $tanggalTtd =
 "Jakarta, " .
+$namaHari . ", " .
 date('d') . " " .
 $bulan[(int)date('m')] . " " .
 date('Y');
 
-$min_support = 2;
-$min_confidence = 50;
-
-// AMBIL DATA TRANSAKSI
-$query = mysqli_query($koneksi, "
-  SELECT kode_transaksi, nama_barang
-  FROM detail_transaksi
-  ORDER BY kode_transaksi
-");
-
-$transaksi = [];
-
-while($row = mysqli_fetch_assoc($query)){
-  $transaksi[$row['kode_transaksi']][] = $row['nama_barang'];
+if(isset($_POST['alpha'])){
+    $_SESSION['alpha'] = floatval($_POST['alpha']);
 }
 
-$totalTransaksi = count($transaksi);
+$alpha = $_SESSION['alpha'] ?? 0.2;
 
-// HITUNG KEMUNCULAN ITEM
-$itemCount = [];
-
-foreach($transaksi as $items){
-  $items = array_unique($items);
-
-  foreach($items as $item){
-    if(!isset($itemCount[$item])){
-      $itemCount[$item] = 0;
-    }
-
-    $itemCount[$item]++;
-  }
-}
-
-// HITUNG ASSOCIATION RULE A => B
-$rules = [];
-
-foreach($transaksi as $items){
-  $items = array_unique($items);
-
-  foreach($items as $itemA){
-    foreach($items as $itemB){
-
-      if($itemA != $itemB){
-
-        $key = $itemA . "=>" . $itemB;
-
-        if(!isset($rules[$key])){
-          $rules[$key] = [
-            'antecedent' => $itemA,
-            'consequent' => $itemB,
-            'jumlah' => 0
-          ];
-        }
-
-        $rules[$key]['jumlah']++;
-      }
-    }
-  }
-}
-
-// FILTER BERDASARKAN SUPPORT DAN CONFIDENCE
-$hasilRules = [];
-
-foreach($rules as $rule){
-
-  if($totalTransaksi > 0 && isset($itemCount[$rule['antecedent']])){
-
-    $support = ($rule['jumlah'] / $totalTransaksi) * 100;
-    $confidence = ($rule['jumlah'] / $itemCount[$rule['antecedent']]) * 100;
-
-    if($rule['jumlah'] >= $min_support && $confidence >= $min_confidence){
-
-      $hasilRules[] = [
-        'antecedent' => $rule['antecedent'],
-        'consequent' => $rule['consequent'],
-        'jumlah' => $rule['jumlah'],
-        'support' => $support,
-        'confidence' => $confidence
-      ];
-
-    }
-  }
-}
+$hasil = hitungSES($koneksi, $alpha);
+$totalBarang = $hasil['totalBarang'];
+$dataSES     = $hasil['dataSES'];
 ?>
 
 <!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Laporan Hasil Prediksi Stok</title>
+  <title>Laporan Hasil Prediksi Stok (SES)</title>
 
   <style>
     *{
@@ -216,13 +145,13 @@ foreach($rules as $rule){
     }
 
     .judul-laporan h1{
-      font-size:34px;
+      font-size:28px;
       margin-bottom:8px;
       letter-spacing:1px;
     }
 
     .judul-laporan p{
-      font-size:18px;
+      font-size:16px;
       font-weight:bold;
     }
 
@@ -233,15 +162,15 @@ foreach($rules as $rule){
     }
 
     .info-box table{
-      width:430px;
+      width:450px;
       border-collapse:collapse;
     }
 
     .info-box td{
       border:2px solid #000;
-      padding:10px;
+      padding:8px 12px;
       font-weight:bold;
-      font-size:17px;
+      font-size:15px;
     }
 
     .info-title{
@@ -273,7 +202,7 @@ foreach($rules as $rule){
     .report-table td{
       border:2px solid #000;
       padding:10px;
-      font-size:14px;
+      font-size:13px;
       text-align:center;
       vertical-align:middle;
       word-wrap:break-word;
@@ -286,7 +215,7 @@ foreach($rules as $rule){
 
     .report-table th:nth-child(2),
     .report-table td:nth-child(2){
-      width:25%;
+      width:22%;
       text-align:left;
     }
 
@@ -297,7 +226,7 @@ foreach($rules as $rule){
 
     .report-table th:nth-child(4),
     .report-table td:nth-child(4){
-      width:12%;
+      width:14%;
     }
 
     .report-table th:nth-child(5),
@@ -307,7 +236,7 @@ foreach($rules as $rule){
 
     .report-table th:nth-child(6),
     .report-table td:nth-child(6){
-      width:34%;
+      width:35%;
       text-align:left;
     }
 
@@ -315,18 +244,18 @@ foreach($rules as $rule){
       display:inline-block;
       font-weight:bold;
       margin-bottom:6px;
+      padding:3px 8px;
+      border-radius:4px;
     }
 
     .tinggi{
       color:#155724;
-    }
-
-    .sedang{
-      color:#856404;
+      background:#d4edda;
     }
 
     .rendah{
       color:#721c24;
+      background:#f8d7da;
     }
 
     .ttd{
@@ -361,7 +290,7 @@ foreach($rules as $rule){
 <div class="container">
 
   <div class="top-action">
-    <a href="laporan.php" class="btn btn-back">
+    <a href="../laporan.php" class="btn btn-back">
       ← Kembali ke Menu Laporan
     </a>
 
@@ -381,37 +310,29 @@ foreach($rules as $rule){
     </div>
 
     <div class="kop-right">
-      <img src="assets/logo.png" alt="Logo">
-      <p>www.tokoikhwangrogol.com</p>
+      <img src="../assets/logo.png" alt="Logo">
+      <p>toko-ikhwan-grogol.free.nf</p>
     </div>
   </div>
 
   <div class="judul-laporan">
-    <h1>LAPORAN HASIL PREDIKSI STOK</h1>
+    <h1>LAPORAN PREDIKSI STOK (SINGLE EXPONENTIAL SMOOTHING)</h1>
     <p><?= $tanggalIndonesia; ?></p>
   </div>
 
   <div class="info-box">
     <table>
       <tr>
-        <td class="info-title">Total Transaksi</td>
-        <td class="info-value">
-          <?= $totalTransaksi; ?>
-        </td>
+        <td class="info-title">Metode Forecasting</td>
+        <td class="info-value">Single Exponential Smoothing</td>
       </tr>
-
       <tr>
-        <td class="info-title">Minimum Support</td>
-        <td class="info-value">
-          <?= $min_support; ?>
-        </td>
+        <td class="info-title">Parameter Alpha (&alpha;)</td>
+        <td class="info-value"><?= $alpha; ?></td>
       </tr>
-
       <tr>
-        <td class="info-title">Minimum Confidence</td>
-        <td class="info-value">
-          <?= $min_confidence; ?>%
-        </td>
+        <td class="info-title">Total Barang</td>
+        <td class="info-value"><?= $totalBarang; ?> Barang</td>
       </tr>
     </table>
   </div>
@@ -420,10 +341,10 @@ foreach($rules as $rule){
     <thead>
       <tr>
         <th>No</th>
-        <th>Aturan Asosiasi</th>
-        <th>Jumlah</th>
-        <th>Support</th>
-        <th>Confidence</th>
+        <th>Nama Barang</th>
+        <th>Stok Saat Ini</th>
+        <th>Prediksi Kebutuhan</th>
+        <th>Akurasi</th>
         <th>Rekomendasi Prediksi Stok</th>
       </tr>
     </thead>
@@ -432,45 +353,36 @@ foreach($rules as $rule){
       <?php
       $no = 1;
 
-      if(count($hasilRules) > 0){
+      if(count($dataSES) > 0){
 
-        foreach($hasilRules as $rule){
-
-          if($rule['confidence'] >= 80){
-            $kategori = "Hubungan Kuat";
-            $class = "tinggi";
-            $rekomendasi = "Stok " . $rule['consequent'] . " perlu diperbanyak karena sangat sering dibeli bersamaan dengan " . $rule['antecedent'] . ".";
-          }elseif($rule['confidence'] >= 60){
-            $kategori = "Hubungan Sedang";
-            $class = "sedang";
-            $rekomendasi = "Stok " . $rule['consequent'] . " perlu dipertahankan karena cukup sering dibeli bersamaan dengan " . $rule['antecedent'] . ".";
-          }else{
-            $kategori = "Hubungan Rendah";
-            $class = "rendah";
-            $rekomendasi = "Stok " . $rule['consequent'] . " tetap diperhatikan, tetapi tidak perlu ditambah terlalu banyak.";
-          }
+        foreach($dataSES as $item){
       ?>
 
       <tr>
         <td><?= $no++; ?></td>
 
         <td>
-          Jika membeli <b><?= $rule['antecedent']; ?></b>,
-          maka membeli <b><?= $rule['consequent']; ?></b>
+          <b><?= $item['nama_barang']; ?></b>
+          <br>
+          <small>Satuan: <?= $item['jenis_barang']; ?></small>
         </td>
 
-        <td><?= $rule['jumlah']; ?></td>
-
-        <td><?= number_format($rule['support'],2); ?>%</td>
-
-        <td><?= number_format($rule['confidence'],2); ?>%</td>
+        <td><?= $item['stok_saat_ini']; ?> <?= $item['jenis_barang']; ?></td>
 
         <td>
-          <span class="kategori <?= $class; ?>">
-            <?= $kategori; ?>
+          <b><?= number_format($item['forecast_next'], 2); ?></b>
+          <br>
+          <small>(~<?= $item['prediksi_stok_unit']; ?> <?= $item['jenis_barang']; ?>)</small>
+        </td>
+
+        <td><b><?= number_format($item['akurasi'], 2); ?>%</b></td>
+
+        <td>
+          <span class="kategori <?= $item['class_status']; ?>">
+            <?= $item['status']; ?>
           </span>
           <br>
-          <?= $rekomendasi; ?>
+          <?= $item['rekomendasi']; ?>
         </td>
       </tr>
 
@@ -478,7 +390,7 @@ foreach($rules as $rule){
 
       <tr>
         <td colspan="6">
-          Belum ada aturan asosiasi yang memenuhi minimum support dan confidence.
+          Belum ada data barang untuk dilakukan peramalan stok.
         </td>
       </tr>
 

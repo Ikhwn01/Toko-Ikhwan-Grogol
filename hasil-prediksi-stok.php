@@ -1,88 +1,22 @@
 <?php
-include 'koneksi.php';
+session_start();
+include 'config/koneksi.php';
+include 'includes/ses-engine.php';
 
-$min_support = 2;
-$min_confidence = 50;
+$alpha = $_SESSION['alpha'] ?? 0.2;
 
-/* AMBIL DATA TRANSAKSI */
-$query = mysqli_query($koneksi, "
-  SELECT kode_transaksi, nama_barang
-  FROM detail_transaksi
-  ORDER BY kode_transaksi
-");
+$hasil = hitungSES($koneksi, $alpha);
+$totalBarang = $hasil['totalBarang'];
+$dataSES     = $hasil['dataSES'];
 
-$transaksi = [];
+$chartLabels = [];
+$chartStokTersedia = [];
+$chartPrediksiSES = [];
 
-while($row = mysqli_fetch_assoc($query)){
-  $transaksi[$row['kode_transaksi']][] = $row['nama_barang'];
-}
-
-$totalTransaksi = count($transaksi);
-
-/* HITUNG JUMLAH KEMUNCULAN ITEM */
-$itemCount = [];
-
-foreach($transaksi as $items){
-  $items = array_unique($items);
-
-  foreach($items as $item){
-    if(!isset($itemCount[$item])){
-      $itemCount[$item] = 0;
-    }
-
-    $itemCount[$item]++;
-  }
-}
-
-/* HITUNG ASSOCIATION RULE A => B */
-$rules = [];
-
-foreach($transaksi as $items){
-  $items = array_unique($items);
-
-  foreach($items as $itemA){
-    foreach($items as $itemB){
-
-      if($itemA != $itemB){
-
-        $key = $itemA . "=>" . $itemB;
-
-        if(!isset($rules[$key])){
-          $rules[$key] = [
-            'antecedent' => $itemA,
-            'consequent' => $itemB,
-            'jumlah' => 0
-          ];
-        }
-
-        $rules[$key]['jumlah']++;
-      }
-    }
-  }
-}
-
-/* FILTER RULE BERDASARKAN MIN SUPPORT DAN CONFIDENCE */
-$hasilRules = [];
-
-foreach($rules as $rule){
-
-  if($totalTransaksi > 0 && isset($itemCount[$rule['antecedent']])){
-
-    $support = ($rule['jumlah'] / $totalTransaksi) * 100;
-    $confidence = ($rule['jumlah'] / $itemCount[$rule['antecedent']]) * 100;
-
-    if($rule['jumlah'] >= $min_support && $confidence >= $min_confidence){
-
-      $hasilRules[] = [
-        'antecedent' => $rule['antecedent'],
-        'consequent' => $rule['consequent'],
-        'jumlah' => $rule['jumlah'],
-        'support' => $support,
-        'confidence' => $confidence
-      ];
-
-    }
-  }
+foreach($dataSES as $d){
+  $chartLabels[] = $d['nama_barang'];
+  $chartStokTersedia[] = $d['stok_saat_ini'];
+  $chartPrediksiSES[] = $d['prediksi_stok_unit'];
 }
 ?>
 
@@ -90,14 +24,14 @@ foreach($rules as $rule){
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Hasil Prediksi Stok</title>
+  <title>Hasil Prediksi Stok - Single Exponential Smoothing</title>
 
   <style>
     *{
       margin:0;
       padding:0;
       box-sizing:border-box;
-      font-family:Arial, Helvetica, sans-serif;
+      font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
     body{
@@ -141,11 +75,28 @@ foreach($rules as $rule){
     .info{
       background:#eef4ff;
       color:#1f64e0;
-      padding:15px;
+      padding:18px;
       border-radius:12px;
       margin-bottom:25px;
       font-weight:bold;
       line-height:1.6;
+    }
+
+    .chart-box{
+      background:#f8fafc;
+      padding:22px;
+      border-radius:16px;
+      border:1px solid #e2e8f0;
+      margin-bottom:30px;
+    }
+
+    .chart-box h3{
+      color:#1e293b;
+      margin-bottom:15px;
+      font-size:18px;
+      display:flex;
+      align-items:center;
+      gap:8px;
     }
 
     table{
@@ -169,7 +120,7 @@ foreach($rules as $rule){
     }
 
     td:nth-child(2),
-    td:nth-child(6){
+    td:nth-child(7){
       text-align:left;
     }
 
@@ -177,16 +128,7 @@ foreach($rules as $rule){
       color:#155724;
       font-weight:bold;
       background:#d4edda;
-      padding:7px 10px;
-      border-radius:8px;
-      display:inline-block;
-    }
-
-    .sedang{
-      color:#856404;
-      font-weight:bold;
-      background:#fff3cd;
-      padding:7px 10px;
+      padding:7px 12px;
       border-radius:8px;
       display:inline-block;
     }
@@ -195,7 +137,7 @@ foreach($rules as $rule){
       color:#721c24;
       font-weight:bold;
       background:#f8d7da;
-      padding:7px 10px;
+      padding:7px 12px;
       border-radius:8px;
       display:inline-block;
     }
@@ -208,7 +150,7 @@ foreach($rules as $rule){
 
   <div class="header-top">
 
-    <h1>Hasil Prediksi Stok Barang</h1>
+    <h1>Hasil Prediksi Stok Barang (SES)</h1>
 
     <div class="top-action">
       <a href="dashboard.php">
@@ -219,24 +161,30 @@ foreach($rules as $rule){
   </div>
 
   <div class="info">
-    Hasil prediksi stok dihitung berdasarkan pola asosiasi algoritma Apriori.
+    Metode Forecasting: <b>Single Exponential Smoothing (SES)</b>
     <br>
-    Minimum Support: <?= $min_support; ?>
+    Parameter Alpha (&alpha;): <b><?= $alpha; ?></b>
     <br>
-    Minimum Confidence: <?= $min_confidence; ?>%
-    <br>
-    Total Transaksi: <?= $totalTransaksi; ?>
+    Total Barang Diperhitungkan: <b><?= $totalBarang; ?> Barang</b>
+  </div>
+
+  <div class="chart-box">
+    <h3>📊 Perbandingan Stok Saat Ini vs Perkiraan Kebutuhan (SES)</h3>
+    <div style="position:relative; height:290px; width:100%;">
+      <canvas id="prediksiChart"></canvas>
+    </div>
   </div>
 
   <table>
     <thead>
       <tr>
         <th>No</th>
-        <th>Aturan Asosiasi</th>
-        <th>Jumlah Transaksi Bersama</th>
-        <th>Support</th>
-        <th>Confidence</th>
-        <th>Rekomendasi Prediksi Stok</th>
+        <th>Nama Barang</th>
+        <th>Stok Saat Ini</th>
+        <th>Hasil Prediksi (Unit)</th>
+        <th>MAPE (%)</th>
+        <th>Tingkat Akurasi</th>
+        <th>Status & Rekomendasi Stok</th>
       </tr>
     </thead>
 
@@ -244,53 +192,46 @@ foreach($rules as $rule){
       <?php
       $no = 1;
 
-      if(count($hasilRules) > 0){
+      if(count($dataSES) > 0){
 
-        foreach($hasilRules as $rule){
-
-          if($rule['confidence'] >= 80){
-            $kategori = "Hubungan Kuat";
-            $class = "tinggi";
-            $rekomendasi = "Stok " . $rule['consequent'] . " perlu diperbanyak karena sangat sering dibeli bersamaan dengan " . $rule['antecedent'] . ".";
-          }elseif($rule['confidence'] >= 60){
-            $kategori = "Hubungan Sedang";
-            $class = "sedang";
-            $rekomendasi = "Stok " . $rule['consequent'] . " perlu dipertahankan karena cukup sering dibeli bersamaan dengan " . $rule['antecedent'] . ".";
-          }else{
-            $kategori = "Hubungan Rendah";
-            $class = "rendah";
-            $rekomendasi = "Stok " . $rule['consequent'] . " tetap diperhatikan, tetapi tidak perlu ditambah terlalu banyak.";
-          }
+        foreach($dataSES as $item){
       ?>
 
       <tr>
         <td><?= $no++; ?></td>
 
         <td>
-          Jika membeli <b><?= $rule['antecedent']; ?></b>,
-          maka membeli <b><?= $rule['consequent']; ?></b>
+          <b><?= $item['nama_barang']; ?></b>
+          <br>
+          <small style="color:#666;">Satuan: <?= $item['jenis_barang']; ?></small>
         </td>
 
-        <td><?= $rule['jumlah']; ?></td>
-
-        <td><?= number_format($rule['support'],2); ?>%</td>
-
-        <td><?= number_format($rule['confidence'],2); ?>%</td>
+        <td><?= $item['stok_saat_ini']; ?> <?= $item['jenis_barang']; ?></td>
 
         <td>
-          <span class="<?= $class; ?>">
-            <?= $kategori; ?>
+          <b><?= number_format($item['forecast_next'], 2); ?></b>
+          <br>
+          <small>(~<?= $item['prediksi_stok_unit']; ?> <?= $item['jenis_barang']; ?>)</small>
+        </td>
+
+        <td><?= number_format($item['mape'], 2); ?>%</td>
+
+        <td><b><?= number_format($item['akurasi'], 2); ?>%</b></td>
+
+        <td>
+          <span class="<?= $item['class_status']; ?>">
+            <?= $item['status']; ?>
           </span>
           <br><br>
-          <?= $rekomendasi; ?>
+          <?= $item['rekomendasi']; ?>
         </td>
       </tr>
 
       <?php }}else{ ?>
 
       <tr>
-        <td colspan="6">
-          Belum ada aturan asosiasi yang memenuhi minimum support dan confidence.
+        <td colspan="7">
+          Belum ada data barang untuk dilakukan peramalan stok.
         </td>
       </tr>
 
@@ -299,6 +240,66 @@ foreach($rules as $rule){
   </table>
 
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const ctx = document.getElementById('prediksiChart').getContext('2d');
+
+new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: <?= json_encode($chartLabels); ?>,
+    datasets: [
+      {
+        label: 'Stok Saat Ini',
+        data: <?= json_encode($chartStokTersedia); ?>,
+        backgroundColor: '#1f64e0',
+        borderRadius: 8,
+        maxBarThickness: 45
+      },
+      {
+        label: 'Prediksi Kebutuhan SES (Next)',
+        data: <?= json_encode($chartPrediksiSES); ?>,
+        backgroundColor: '#8e6bf7',
+        borderRadius: 8,
+        maxBarThickness: 45
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: true,
+        position: 'top',
+        labels: {
+          font: { family: 'Segoe UI', size: 13, weight: '600' },
+          usePointStyle: true
+        }
+      },
+      tooltip: {
+        backgroundColor: '#1e293b',
+        titleFont: { size: 14, weight: 'bold' },
+        bodyFont: { size: 13 },
+        padding: 12,
+        cornerRadius: 10
+      }
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: { font: { family: 'Segoe UI', size: 13 }, color: '#475569' }
+      },
+      y: {
+        beginAtZero: true,
+        grid: { color: '#f1f5f9' },
+        ticks: { font: { family: 'Segoe UI', size: 12 }, color: '#475569', precision: 0 }
+      }
+    }
+  }
+});
+</script>
 
 </body>
 </html>

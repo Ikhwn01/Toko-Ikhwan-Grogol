@@ -1,5 +1,5 @@
 <?php
-include 'koneksi.php';
+include 'config/koneksi.php';
 
 $edit = null;
 $search = $_GET['search'] ?? '';
@@ -495,7 +495,7 @@ function uploadData(rows){
     const row = rows[i];
 
     if(row.length >= 5){
-      fetch('upload-barang.php', {
+      fetch('proses/upload-barang.php', {
         method:'POST',
         headers:{
           'Content-Type':'application/x-www-form-urlencoded'

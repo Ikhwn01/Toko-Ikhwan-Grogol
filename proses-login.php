@@ -2,7 +2,7 @@
 
 session_start();
 
-include 'koneksi.php';
+include 'config/koneksi.php';
 
 $username = $_POST['username'];
 $password = $_POST['password'];

@@ -111,7 +111,7 @@
       Masukkan email anda untuk menerima link reset password
     </p>
 
-    <form id="forgotForm" method="POST" action="kirim-reset.php">
+    <form id="forgotForm" method="POST" action="proses/kirim-reset.php">
 
       <div class="input-box">
 

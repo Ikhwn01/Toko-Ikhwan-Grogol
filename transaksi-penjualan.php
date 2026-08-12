@@ -1,5 +1,5 @@
 <?php
-include 'koneksi.php';
+include 'config/koneksi.php';
 
 if(isset($_POST['simpan'])){
 
@@ -71,15 +71,68 @@ if(isset($_POST['simpan'])){
 }
 
 if(isset($_GET['hapus'])){
+
   $id = $_GET['hapus'];
 
-  mysqli_query($koneksi, "DELETE FROM item_transaksi WHERE id_transaksi='$id'");
-  mysqli_query($koneksi, "DELETE FROM transaksi_penjualan_multi WHERE id_transaksi='$id'");
 
-  echo "<script>
-    alert('Transaksi berhasil dihapus');
+  // Ambil data barang yang ada dalam transaksi
+  $queryItem = mysqli_query($koneksi,"
+    SELECT id_barang, jumlah 
+    FROM item_transaksi
+    WHERE id_transaksi='$id'
+  ");
+
+
+  // Kembalikan stok barang
+  while($item = mysqli_fetch_assoc($queryItem)){
+
+    mysqli_query($koneksi,"
+      UPDATE barang
+      SET jumlah_barang = jumlah_barang + ".$item['jumlah']."
+      WHERE id_barang='".$item['id_barang']."'
+    ");
+
+  }
+
+
+  // Ambil kode transaksi untuk hapus data Apriori
+  $queryKode = mysqli_query($koneksi,"
+    SELECT kode_transaksi
+    FROM transaksi_penjualan_multi
+    WHERE id_transaksi='$id'
+  ");
+
+  $kode = mysqli_fetch_assoc($queryKode);
+  $kode_transaksi = $kode['kode_transaksi'];
+
+
+  // Hapus data Apriori
+  mysqli_query($koneksi,"
+    DELETE FROM detail_transaksi
+    WHERE kode_transaksi='$kode_transaksi'
+  ");
+
+
+  // Hapus detail barang transaksi
+  mysqli_query($koneksi,"
+    DELETE FROM item_transaksi
+    WHERE id_transaksi='$id'
+  ");
+
+
+  // Hapus transaksi utama
+  mysqli_query($koneksi,"
+    DELETE FROM transaksi_penjualan_multi
+    WHERE id_transaksi='$id'
+  ");
+
+
+  echo "
+  <script>
+    alert('Transaksi berhasil dihapus dan stok dikembalikan');
     window.location='transaksi-penjualan.php';
   </script>";
+
 }
 ?>
 
@@ -311,7 +364,7 @@ if(isset($_GET['hapus'])){
     <button type="submit" name="simpan" class="btn btn-save">
       Simpan Transaksi
     </button>
-    <a href="reset-transaksi.php"
+    <a href="proses/reset-transaksi.php"
       class="btn btn-hapus"
       onclick="return confirm('Yakin ingin mereset semua transaksi? Barang terlaris juga akan ikut kosong.')">
       Reset Transaksi

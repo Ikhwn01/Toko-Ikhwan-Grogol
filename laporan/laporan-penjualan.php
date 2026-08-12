@@ -1,5 +1,5 @@
 <?php
-include 'koneksi.php';
+include '../config/koneksi.php';
 
 date_default_timezone_set('Asia/Jakarta');
 
@@ -42,17 +42,47 @@ date('d') . " " .
 $bulan[(int)date('m')] . " " .
 date('Y');
 
+$dari = $_GET['dari'] ?? '';
+$sampai = $_GET['sampai'] ?? '';
+
+$whereData = "";
+$whereTotal = "";
+
+if($dari != '' && $sampai != ''){
+  $whereData = "WHERE t.tanggal BETWEEN '$dari' AND '$sampai'";
+  $whereTotal = "WHERE tanggal BETWEEN '$dari' AND '$sampai'";
+}
+
 $data = mysqli_query($koneksi, "
-  SELECT * FROM barang
-  ORDER BY nama_barang ASC
+  SELECT 
+    t.kode_transaksi,
+    t.tanggal,
+    i.nama_barang,
+    i.harga,
+    i.jumlah AS jumlah_beli,
+    i.subtotal AS total_harga
+  FROM transaksi_penjualan_multi t
+  JOIN item_transaksi i 
+  ON t.id_transaksi = i.id_transaksi
+  $whereData
+  ORDER BY t.tanggal DESC
 ");
+
+$totalQuery = mysqli_query($koneksi, "
+  SELECT SUM(total_transaksi) AS total
+  FROM transaksi_penjualan_multi
+  $whereTotal
+");
+
+$totalData = mysqli_fetch_assoc($totalQuery);
+$total = $totalData['total'] ?? 0;
 ?>
 
 <!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Laporan Data Barang</title>
+  <title>Laporan Penjualan</title>
 
   <style>
     *{
@@ -87,8 +117,8 @@ $data = mysqli_query($koneksi, "
       padding:12px 20px;
       border-radius:10px;
       color:white;
-      font-weight:bold;
       cursor:pointer;
+      font-weight:bold;
       display:inline-block;
     }
 
@@ -98,6 +128,23 @@ $data = mysqli_query($koneksi, "
 
     .btn-print{
       background:#27ae60;
+    }
+
+    .btn-filter{
+      background:#1f64e0;
+    }
+
+    .filter{
+      display:flex;
+      gap:15px;
+      margin-bottom:25px;
+      flex-wrap:wrap;
+    }
+
+    .filter input{
+      padding:12px;
+      border:1px solid #ccc;
+      border-radius:10px;
     }
 
     .kop{
@@ -147,28 +194,64 @@ $data = mysqli_query($koneksi, "
       font-weight:bold;
     }
 
-    table{
+    .income-box{
+      display:flex;
+      justify-content:flex-end;
+      margin-bottom:12px;
+    }
+
+    .income-box table{
+      width:420px;
+      border-collapse:collapse;
+    }
+
+    .income-box td{
+      border:2px solid #000;
+      padding:10px;
+      font-weight:bold;
+      font-size:18px;
+    }
+
+    .income-title{
+      background:#000;
+      color:white;
+      text-align:center;
+    }
+
+    .income-value{
+      text-align:right;
+      background:#f7f5ed;
+    }
+
+    .report-table{
       width:100%;
       border-collapse:collapse;
       margin-top:20px;
     }
 
-    th{
+    .report-table th{
       background:#e5e5e5;
+      color:#000;
       border:2px solid #000;
       padding:10px;
       font-size:15px;
     }
 
-    td{
+    .report-table td{
       border:2px solid #000;
       padding:10px;
+      font-size:15px;
       text-align:center;
-      font-size:15px;
     }
 
-    td:nth-child(3){
+    .report-table td:nth-child(3){
       text-align:left;
+    }
+
+    .total-row td{
+      font-weight:bold;
+      background:#e5e5e5;
+      font-size:16px;
     }
 
     .ttd{
@@ -181,7 +264,8 @@ $data = mysqli_query($koneksi, "
     }
 
     @media print{
-      .top-action{
+      .top-action,
+      .filter{
         display:none;
       }
 
@@ -203,14 +287,27 @@ $data = mysqli_query($koneksi, "
 <div class="container">
 
   <div class="top-action">
-    <a href="laporan.php" class="btn btn-back">
+    <a href="../laporan.php" class="btn btn-back">
       ← Kembali ke Menu Laporan
     </a>
 
-    <button onclick="window.print()" class="btn btn-print">
+    <button type="button" onclick="window.print()" class="btn btn-print">
       Cetak Laporan
     </button>
   </div>
+
+  <form method="GET" class="filter">
+    <input type="date" name="dari" value="<?= $dari; ?>">
+    <input type="date" name="sampai" value="<?= $sampai; ?>">
+
+    <button type="submit" class="btn btn-filter">
+      Filter
+    </button>
+
+    <a href="laporan-penjualan.php" class="btn btn-filter">
+      Reset
+    </a>
+  </form>
 
   <div class="kop">
     <div class="kop-left">
@@ -223,25 +320,36 @@ $data = mysqli_query($koneksi, "
     </div>
 
     <div class="kop-right">
-      <img src="assets/logo.png" alt="Logo">
+      <img src="../assets/logo.png" alt="Logo">
       <p>www.tokoikhwangrogol.com</p>
     </div>
   </div>
 
   <div class="judul-laporan">
-    <h1>LAPORAN DATA BARANG</h1>
+    <h1>LAPORAN PENJUALAN</h1>
     <p><?= $tanggalIndonesia; ?></p>
   </div>
 
-  <table>
+  <div class="income-box">
+    <table>
+      <tr>
+        <td class="income-title">Total Pendapatan</td>
+        <td class="income-value">
+          Rp <?= number_format($total,0,',','.'); ?>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <table class="report-table">
     <thead>
       <tr>
         <th>No</th>
-        <th>No Barang</th>
-        <th>Nama Barang</th>
-        <th>Jumlah Stok</th>
+        <th>Tanggal</th>
+        <th>Produk</th>
         <th>Harga</th>
-        <th>Jenis Satuan</th>
+        <th>Total Unit</th>
+        <th>Total Penjualan</th>
       </tr>
     </thead>
 
@@ -252,19 +360,24 @@ $data = mysqli_query($koneksi, "
       ?>
       <tr>
         <td><?= $no++; ?></td>
-        <td><?= $row['no_barang']; ?></td>
+        <td><?= $row['tanggal']; ?></td>
         <td><?= $row['nama_barang']; ?></td>
-        <td><?= $row['jumlah_barang']; ?></td>
         <td>Rp <?= number_format($row['harga'],0,',','.'); ?></td>
-        <td><?= $row['jenis_barang']; ?></td>
+        <td><?= $row['jumlah_beli']; ?></td>
+        <td>Rp <?= number_format($row['total_harga'],0,',','.'); ?></td>
       </tr>
       <?php } ?>
 
       <?php if($no == 1){ ?>
       <tr>
-        <td colspan="6">Belum ada data barang.</td>
+        <td colspan="6">Belum ada data penjualan.</td>
       </tr>
       <?php } ?>
+
+      <tr class="total-row">
+        <td colspan="5">TOTAL</td>
+        <td>Rp <?= number_format($total,0,',','.'); ?></td>
+      </tr>
     </tbody>
   </table>
 

@@ -1,6 +1,6 @@
 <?php
 
-include 'koneksi.php';
+include 'config/koneksi.php';
 
 $token = $_POST['token'];
 

@@ -1,6 +1,6 @@
 <?php
 
-include 'koneksi.php';
+include '../config/koneksi.php';
 
 $no_barang = $_POST['no_barang'];
 $nama_barang = $_POST['nama_barang'];

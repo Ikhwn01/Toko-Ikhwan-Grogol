@@ -1,0 +1,45 @@
+{
+  "id": "toko-ses-inventory-forecasting",
+  "title": "Smart Retail Inventory & Stock Forecasting System",
+  "subtitle": "Web-based POS and Inventory Management System with Single Exponential Smoothing (SES) Demand Forecasting",
+  "category": "Full Stack Web Development / Data Analytics",
+  "year": "2026",
+  "client": "Toko Ikhwan Grogol",
+  "status": "Completed",
+  "featured": true,
+  "techStack": [
+    "PHP 8.2",
+    "MySQL",
+    "Chart.js",
+    "HTML5",
+    "CSS3 Design System",
+    "Single Exponential Smoothing",
+    "Time Series Analytics"
+  ],
+  "summary": "An intelligent retail management web application that automates Point of Sale operations, inventory tracking, and stock demand forecasting using Single Exponential Smoothing (SES) with automated error evaluation metrics (MAD, MSE, MAPE).",
+  "metrics": {
+    "sampleItems": 20,
+    "sampleTransactions": 500,
+    "forecastingMethods": "Single Exponential Smoothing (SES)",
+    "accuracyEvaluation": ["MAD", "MSE", "MAPE", "Accuracy %"]
+  },
+  "keyFeatures": [
+    "Interactive Analytics Dashboard with curved line area chart and product sales composition doughnut chart",
+    "Single Exponential Smoothing (SES) Engine with customizable alpha smoothing constant (0.1 to 0.9)",
+    "Step-by-step mathematical breakdown table for transparency in forecasting calculations",
+    "Automated stock status alert (Perlu Tambah Stok vs Stok Cukup) with exact reorder recommendation quantity",
+    "Multi-item POS transaction checkout with automated stock deduction",
+    "Print-ready official reports for Master Items, Sales Transactions, Top Selling Items, and SES Stock Predictions",
+    "High-performance PHP Seeder script for generating 500 realistic sales transactions across 70+ days"
+  ],
+  "architecture": {
+    "config": "Database connection and environment settings",
+    "includes": "Mathematics calculation engine and SES forecasting functions",
+    "laporan": "Printable report modules with official letterhead",
+    "proses": "Backend action handlers and batch data generator scripts"
+  },
+  "links": {
+    "github": "https://github.com/username/toko-ses-forecasting",
+    "demo": "http://localhost:8000/login.php"
+  }
+}

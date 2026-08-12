@@ -151,28 +151,28 @@
     <div class="laporan-icon">📦</div>
     <h2>Laporan Data Barang</h2>
     <p>Menampilkan seluruh data barang, stok, harga, dan jenis satuan.</p>
-    <a href="laporan-data-barang.php" class="btn-laporan">Buka Laporan</a>
+    <a href="laporan/laporan-data-barang.php" class="btn-laporan">Buka Laporan</a>
   </div>
 
   <div class="laporan-card">
     <div class="laporan-icon">📁</div>
     <h2>Laporan Penjualan</h2>
     <p>Menampilkan seluruh transaksi penjualan barang.</p>
-    <a href="laporan-penjualan.php" class="btn-laporan">Buka Laporan</a>
+    <a href="laporan/laporan-penjualan.php" class="btn-laporan">Buka Laporan</a>
   </div>
 
   <div class="laporan-card">
     <div class="laporan-icon">🔥</div>
     <h2>Laporan Barang Terlaris</h2>
     <p>Menampilkan barang yang paling banyak terjual.</p>
-    <a href="laporan-barang-terlaris.php" class="btn-laporan">Buka Laporan</a>
+    <a href="laporan/laporan-barang-terlaris.php" class="btn-laporan">Buka Laporan</a>
   </div>
 
   <div class="laporan-card">
     <div class="laporan-icon">📊</div>
     <h2>Laporan Hasil Prediksi Stok</h2>
-    <p>Menampilkan hasil prediksi stok berdasarkan algoritma Apriori.</p>
-    <a href="laporan-prediksi-stok.php" class="btn-laporan">Buka Laporan</a>
+    <p>Menampilkan hasil prediksi stok berdasarkan algoritma Single Exponential Smoothing (SES).</p>
+    <a href="laporan/laporan-prediksi-stok.php" class="btn-laporan">Buka Laporan</a>
   </div>
 
 </div>
