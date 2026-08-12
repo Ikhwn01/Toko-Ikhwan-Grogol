@@ -3,15 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login</title>
+  <title>Login - Toko Ikhwan Grogol</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
-
     *{
       margin:0;
       padding:0;
       box-sizing:border-box;
-      font-family:Arial, Helvetica, sans-serif;
+      font-family:'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
     }
 
     body{
@@ -19,15 +21,17 @@
       display:flex;
       justify-content:center;
       align-items:center;
-      background:#f4f4f4;
+      background:#f8fafc;
+      color:#0f172a;
     }
 
     .login-box{
       width:420px;
       background:white;
       padding:40px;
-      border-radius:20px;
-      box-shadow:0 5px 20px rgba(0,0,0,0.1);
+      border-radius:24px;
+      box-shadow:0 15px 35px -5px rgba(0,0,0,0.05);
+      border:1px solid #f1f5f9;
     }
 
     .login-container{
@@ -36,14 +40,17 @@
     }
 
     .login-container img{
-      width:90px;
-      margin-bottom:10px;
+      width:80px;
+      margin-bottom:12px;
+      filter:drop-shadow(0 4px 6px rgba(0,0,0,0.05));
     }
 
     .login-container h2{
       font-size:22px;
+      font-weight:800;
       margin-bottom:25px;
-      color:#222;
+      color:#0f172a;
+      letter-spacing:-0.5px;
     }
 
     .input-box{
@@ -53,78 +60,83 @@
 
     .input-box input{
       width:100%;
-      padding:15px 20px;
-      border:3px solid #555;
-      border-radius:40px;
+      padding:14px 20px;
+      border:2px solid #e2e8f0;
+      border-radius:14px;
       outline:none;
-      font-size:16px;
+      font-size:15px;
+      font-weight:600;
       background:white;
-      transition:0.3s;
+      transition:0.2s;
     }
 
     .input-box input:focus{
-      border-color:#2d9cdb;
-      box-shadow:0 0 10px rgba(45,156,219,0.3);
+      border-color:#1f64e0;
+      box-shadow:0 0 0 4px rgba(31,100,224,0.1);
     }
 
     .show-password{
       position:absolute;
-      right:20px;
-      top:16px;
+      right:18px;
+      top:15px;
       cursor:pointer;
-      color:gray;
+      color:#64748b;
       font-size:13px;
+      font-weight:700;
       user-select:none;
     }
 
     .show-password:hover{
-      color:#2d9cdb;
+      color:#1f64e0;
     }
 
     .forgot{
-      margin-top:-5px;
-      margin-bottom:25px;
-      text-align:center;
+      margin-top:-4px;
+      margin-bottom:24px;
+      text-align:right;
     }
 
     .forgot a{
       text-decoration:none;
-      color:gray;
+      color:#1f64e0;
       font-size:13px;
+      font-weight:600;
     }
 
     .forgot a:hover{
-      color:#2d9cdb;
+      text-decoration:underline;
     }
 
     .btn-login{
-      width:160px;
+      width:100%;
       padding:14px;
       border:none;
-      border-radius:40px;
-      background:#2d9cdb;
+      border-radius:14px;
+      background:linear-gradient(135deg, #1f64e0, #3b82f6);
       color:white;
-      font-size:28px;
-      font-weight:bold;
+      font-size:16px;
+      font-weight:700;
       cursor:pointer;
-      transition:0.3s;
+      transition:0.2s;
+      box-shadow:0 8px 20px -4px rgba(31,100,224,0.3);
     }
 
     .btn-login:hover{
-      background:#1d87c5;
-      transform:scale(1.03);
+      transform:translateY(-1px);
+      box-shadow:0 12px 25px -4px rgba(31,100,224,0.4);
     }
 
     .error-message{
-      background:#ffdddd;
-      color:#d8000c;
+      background:#fef2f2;
+      color:#ef4444;
+      border:1px solid #fecaca;
       padding:12px;
-      border-radius:10px;
+      border-radius:12px;
       margin-bottom:20px;
       display:none;
       font-size:14px;
+      font-weight:600;
     }
-
   </style>
 </head>
 
@@ -138,7 +150,6 @@
 
       <h2>TOKO IKHWAN GROGOL</h2>
 
-      <!-- PESAN ERROR -->
       <div class="error-message" id="errorMessage">
         Username atau Password salah!
       </div>
@@ -146,21 +157,20 @@
       <form id="loginForm">
 
         <div class="input-box">
-
           <input 
             type="text"
             id="username"
+            name="username"
             placeholder="Username"
             required
           >
-
         </div>
 
         <div class="input-box">
-
           <input 
             type="password"
             id="password"
+            name="password"
             placeholder="Password"
             required
           >
@@ -171,12 +181,11 @@
           >
             Show
           </span>
-
         </div>
 
         <div class="forgot">
           <a href="lupa-password.php">
-            Forgot Password?
+            Lupa Password?
           </a>
         </div>
 
@@ -195,63 +204,53 @@
   </div>
 
   <script>
-
-    // SHOW PASSWORD
     function showPassword(){
-
-      const password =
-      document.getElementById("password");
-
-      const text =
-      document.querySelector(".show-password");
+      const password = document.getElementById("password");
+      const text = document.querySelector(".show-password");
 
       if(password.type === "password"){
-
         password.type = "text";
         text.innerHTML = "Hide";
-
       }else{
-
         password.type = "password";
         text.innerHTML = "Show";
-
       }
-
     }
 
-    // LOGIN VALIDASI
-    document
-    .getElementById("loginForm")
-    .addEventListener("submit", function(e){
-
+    document.getElementById("loginForm").addEventListener("submit", function(e){
       e.preventDefault();
 
-      const username =
-      document.getElementById("username").value;
+      const btn = document.getElementById("btnLogin");
+      const error = document.getElementById("errorMessage");
+      const formData = new FormData(this);
 
-      const password =
-      document.getElementById("password").value;
+      btn.disabled = true;
+      btn.innerText = "Memproses...";
+      error.style.display = "none";
 
-      const error =
-      document.getElementById("errorMessage");
+      fetch('proses-login.php', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        btn.disabled = false;
+        btn.innerText = "Login";
 
-      // USERNAME & PASSWORD CONTOH
-      if(
-        username === "admin" &&
-        password === "123456"
-      ){
-
-        window.location.href =
-        "dashboard.php";
-
-      }else{
-
+        if(data.status === 'success'){
+          window.location.href = data.redirect;
+        } else {
+          error.innerText = data.message || "Login gagal!";
+          error.style.display = "block";
+        }
+      })
+      .catch(err => {
+        btn.disabled = false;
+        btn.innerText = "Login";
+        error.innerText = "Terjadi kesalahan jaringan/server!";
         error.style.display = "block";
-
-      }
-
+      });
     });
-
   </script>
 
 </body>
