@@ -8,14 +8,33 @@ if (empty($file)) {
     $file = 'index.php';
 }
 
-$target = __DIR__ . '/../' . $file;
+$rootPath = dirname(__DIR__);
+$target = $rootPath . '/' . $file;
 
 if (file_exists($target) && !is_dir($target)) {
-    // Serve file
-    require_once $target;
+    $ext = strtolower(pathinfo($target, PATHINFO_EXTENSION));
+    if (in_array($ext, ['css', 'js', 'png', 'jpg', 'jpeg', 'gif', 'svg', 'ico', 'woff', 'woff2', 'ttf'])) {
+        $mimeTypes = [
+            'css' => 'text/css',
+            'js' => 'application/javascript',
+            'png' => 'image/png',
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'gif' => 'image/gif',
+            'svg' => 'image/svg+xml',
+            'ico' => 'image/x-icon',
+            'woff' => 'font/woff',
+            'woff2' => 'font/woff2',
+            'ttf' => 'font/ttf'
+        ];
+        header('Content-Type: ' . ($mimeTypes[$ext] ?? 'text/plain'));
+        readfile($target);
+        exit;
+    }
+    require $target;
 } else if (file_exists($target . '.php')) {
-    require_once $target . '.php';
+    require $target . '.php';
 } else {
-    require_once __DIR__ . '/../index.php';
+    require $rootPath . '/index.php';
 }
 ?>
