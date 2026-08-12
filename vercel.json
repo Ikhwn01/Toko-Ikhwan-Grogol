@@ -2,7 +2,15 @@
   "functions": {
     "api/index.php": {
       "runtime": "vercel-php@0.7.1",
-      "includeFiles": "**"
+      "includeFiles": [
+        "**/*.php",
+        "vendor/**",
+        "config/**",
+        "includes/**",
+        "laporan/**",
+        "proses/**",
+        "assets/**"
+      ]
     }
   },
   "routes": [
