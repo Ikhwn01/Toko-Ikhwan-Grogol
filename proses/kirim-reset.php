@@ -23,7 +23,9 @@ mysqli_query($koneksi, "UPDATE users SET reset_token='$token' WHERE email='$emai
 
 $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
 $host = $_SERVER['HTTP_HOST'];
-$link = "$protocol://$host/reset-password.php?token=$token";
+$scriptDir = dirname(dirname($_SERVER['SCRIPT_NAME']));
+$basePath = ($scriptDir === '/' || $scriptDir === '\\') ? '' : rtrim(str_replace('\\', '/', $scriptDir), '/');
+$link = "$protocol://$host$basePath/reset-password.php?token=$token";
 
 $mailSent = false;
 $errorMsg = '';
