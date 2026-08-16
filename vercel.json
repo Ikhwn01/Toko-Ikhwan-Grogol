@@ -1,13 +1,14 @@
 {
   "version": 2,
   "functions": {
-    "api/index.php": {
+    "api/*.php": {
       "runtime": "vercel-php@0.9.0"
     }
   },
   "routes": [
     {
-      "handle": "filesystem"
+      "src": "/(.*\\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|pdf|webp))",
+      "dest": "/$1"
     },
     {
       "src": "/(.*)",

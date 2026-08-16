@@ -17,6 +17,11 @@ if ($path === '' || $path === 'index.php') {
     $target_file = __DIR__ . '/../' . $safe_path;
 }
 
+// Handle extensionless URL (e.g. /login -> /login.php)
+if (!file_exists($target_file) && file_exists($target_file . '.php')) {
+    $target_file .= '.php';
+}
+
 // Handle directory request
 if (is_dir($target_file)) {
     $target_file = rtrim($target_file, '/') . '/index.php';
