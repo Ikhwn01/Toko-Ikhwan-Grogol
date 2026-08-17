@@ -8,6 +8,9 @@ include __DIR__ . '/../config/koneksi.php';
 $email = mysqli_real_escape_string($koneksi, $_POST['email'] ?? '');
 
 $queryCheck = mysqli_query($koneksi, "SELECT * FROM users WHERE email='$email'");
+if (!$queryCheck) {
+    die("Query error: " . mysqli_error($koneksi) . " (Pastikan tabel 'users' sudah dibuat di database TiDB Cloud)");
+}
 
 if(mysqli_num_rows($queryCheck) < 1){
     echo "<script>

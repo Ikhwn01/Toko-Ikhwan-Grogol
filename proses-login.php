@@ -13,6 +13,10 @@ if(empty($username) || empty($password)){
 }
 
 $query = mysqli_query($koneksi, "SELECT * FROM users WHERE username='$username'");
+if (!$query) {
+    echo json_encode(['status' => 'error', 'message' => 'Query database gagal: ' . mysqli_error($koneksi)]);
+    exit;
+}
 $data = mysqli_fetch_assoc($query);
 
 if($data){
