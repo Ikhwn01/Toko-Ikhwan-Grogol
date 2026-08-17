@@ -13,8 +13,12 @@ $koneksi = mysqli_init();
 
 // Enable SSL required by TiDB Cloud Serverless (port 4000 / tidbcloud.com)
 if (strpos($db_host, 'tidbcloud.com') !== false || $db_port === 4000 || getenv('DB_SSL') === 'true') {
-    mysqli_ssl_set($koneksi, NULL, NULL, NULL, NULL, NULL);
-    $connected = @mysqli_real_connect($koneksi, $db_host, $db_user, $db_pass, $db_name, $db_port, NULL, MYSQLI_CLIENT_SSL_DONT_VERIFY_SERVER_CERT);
+    if (defined('MYSQLI_CLIENT_SSL_DONT_VERIFY_SERVER_CERT')) {
+        $connected = @mysqli_real_connect($koneksi, $db_host, $db_user, $db_pass, $db_name, $db_port, NULL, MYSQLI_CLIENT_SSL_DONT_VERIFY_SERVER_CERT);
+    } else {
+        mysqli_ssl_set($koneksi, NULL, NULL, NULL, NULL, NULL);
+        $connected = @mysqli_real_connect($koneksi, $db_host, $db_user, $db_pass, $db_name, $db_port);
+    }
 } else {
     $connected = @mysqli_real_connect($koneksi, $db_host, $db_user, $db_pass, $db_name, $db_port);
 }
@@ -32,6 +36,8 @@ if (!$connected && $db_host === 'localhost' && !getenv('VERCEL')) {
 }
 
 if (!$connected || !$koneksi) {
+    $err_msg = mysqli_connect_error();
+    
     // If request comes from proses API or expects JSON response
     $is_json_request = (isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'json') !== false) ||
                        (isset($_SERVER['SCRIPT_NAME']) && strpos($_SERVER['SCRIPT_NAME'], 'proses') !== false) ||
@@ -41,12 +47,12 @@ if (!$connected || !$koneksi) {
         header('Content-Type: application/json');
         echo json_encode([
             'status' => 'error',
-            'message' => 'Koneksi ke database TiDB/MySQL Cloud gagal! Pastikan Environment Variables (DB_HOST, DB_USER, DB_PASS, DB_NAME, DB_PORT) sudah diisi di Vercel.'
+            'message' => 'Gagal koneksi ke DB: ' . ($err_msg ?: 'Unknown error') . ' (Host: ' . $db_host . ', User: ' . $db_user . ', DB: ' . $db_name . ', Port: ' . $db_port . ')'
         ]);
         exit;
     }
     
-    die("Koneksi ke database gagal: " . mysqli_connect_error());
+    die("Koneksi ke database gagal: " . $err_msg);
 }
 
 ?>
