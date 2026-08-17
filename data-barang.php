@@ -11,18 +11,23 @@ if(isset($_GET['edit'])){
 }
 
 if(isset($_POST['simpan'])){
-  $no_barang = $_POST['no_barang'];
-  $nama_barang = $_POST['nama_barang'];
-  $jumlah_barang = $_POST['jumlah_barang'];
-  $harga = $_POST['harga'];
-  $jenis_barang = $_POST['jenis_barang'];
+  $no_barang = mysqli_real_escape_string($koneksi, $_POST['no_barang']);
+  $nama_barang = mysqli_real_escape_string($koneksi, $_POST['nama_barang']);
+  $jumlah_barang = (int)$_POST['jumlah_barang'];
+  $harga = (int)$_POST['harga'];
+  $jenis_barang = mysqli_real_escape_string($koneksi, $_POST['jenis_barang']);
 
-  mysqli_query($koneksi, "INSERT INTO barang 
+  $query = mysqli_query($koneksi, "INSERT INTO barang 
   (no_barang, nama_barang, jumlah_barang, harga, jenis_barang)
   VALUES 
   ('$no_barang', '$nama_barang', '$jumlah_barang', '$harga', '$jenis_barang')");
 
+  if (!$query) {
+    die("Gagal menyimpan data barang: " . mysqli_error($koneksi));
+  }
+
   header("Location: data-barang.php");
+  exit;
 }
 
 if(isset($_POST['update'])){

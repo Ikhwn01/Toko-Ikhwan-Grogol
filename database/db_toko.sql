@@ -1,64 +1,34 @@
--- phpMyAdmin SQL Dump
--- version 5.2.1
--- https://www.phpmyadmin.net/
---
--- Host: 127.0.0.1
--- Generation Time: Jul 01, 2026 at 07:55 AM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- Database: db_toko (TiDB Cloud Compatible)
+CREATE DATABASE IF NOT EXISTS `db_toko`;
+USE `db_toko`;
 
-SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-START TRANSACTION;
-SET time_zone = "+00:00";
+DROP TABLE IF EXISTS `item_transaksi`;
+DROP TABLE IF EXISTS `detail_transaksi`;
+DROP TABLE IF EXISTS `transaksi_penjualan_multi`;
+DROP TABLE IF EXISTS `transaksi_penjualan`;
+DROP TABLE IF EXISTS `barang`;
+DROP TABLE IF EXISTS `users`;
 
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
-
---
--- Database: `db_toko`
---
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `barang`
---
-
 CREATE TABLE `barang` (
-  `id_barang` int(11) NOT NULL,
+  `id_barang` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `no_barang` varchar(50) NOT NULL,
   `nama_barang` varchar(100) NOT NULL,
   `jumlah_barang` int(11) NOT NULL,
   `jenis_barang` varchar(50) NOT NULL,
   `harga` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `barang`
---
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 INSERT INTO `barang` (`id_barang`, `no_barang`, `nama_barang`, `jumlah_barang`, `jenis_barang`, `harga`) VALUES
 (34, 'BRG01', 'Indomie Goreng', 16, 'PCS', 3500),
 (35, 'BRG02', 'Aqua Botol', 31, 'Botol', 3000);
 
--- --------------------------------------------------------
-
---
 -- Table structure for table `detail_transaksi`
---
-
 CREATE TABLE `detail_transaksi` (
-  `id_detail` int(11) NOT NULL,
+  `id_detail` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `kode_transaksi` varchar(50) DEFAULT NULL,
   `nama_barang` varchar(100) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `detail_transaksi`
---
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 INSERT INTO `detail_transaksi` (`id_detail`, `kode_transaksi`, `nama_barang`) VALUES
 (29, 'TRX20260530151743', 'Indomie Goreng'),
@@ -82,25 +52,16 @@ INSERT INTO `detail_transaksi` (`id_detail`, `kode_transaksi`, `nama_barang`) VA
 (47, 'TRX20260530152353', 'Aqua Botol'),
 (48, 'TRX20260530152353', 'Indomie Goreng');
 
--- --------------------------------------------------------
-
---
 -- Table structure for table `item_transaksi`
---
-
 CREATE TABLE `item_transaksi` (
-  `id_item` int(11) NOT NULL,
+  `id_item` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `id_transaksi` int(11) NOT NULL,
   `id_barang` int(11) NOT NULL,
   `nama_barang` varchar(100) NOT NULL,
   `harga` int(11) NOT NULL,
   `jumlah` int(11) NOT NULL,
   `subtotal` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `item_transaksi`
---
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 INSERT INTO `item_transaksi` (`id_item`, `id_transaksi`, `id_barang`, `nama_barang`, `harga`, `jumlah`, `subtotal`) VALUES
 (19, 15, 34, 'Indomie Goreng', 3500, 2, 7000),
@@ -124,39 +85,25 @@ INSERT INTO `item_transaksi` (`id_item`, `id_transaksi`, `id_barang`, `nama_bara
 (37, 26, 35, 'Aqua Botol', 3000, 2, 6000),
 (38, 26, 34, 'Indomie Goreng', 3500, 1, 3500);
 
--- --------------------------------------------------------
-
---
 -- Table structure for table `transaksi_penjualan`
---
-
 CREATE TABLE `transaksi_penjualan` (
-  `id_transaksi` int(11) NOT NULL,
+  `id_transaksi` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `tanggal` date NOT NULL,
   `id_barang` int(11) NOT NULL,
   `nama_barang` varchar(100) NOT NULL,
   `harga` int(11) NOT NULL,
   `jumlah_beli` int(11) NOT NULL,
   `total_harga` int(11) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- --------------------------------------------------------
-
---
 -- Table structure for table `transaksi_penjualan_multi`
---
-
 CREATE TABLE `transaksi_penjualan_multi` (
-  `id_transaksi` int(11) NOT NULL,
+  `id_transaksi` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `kode_transaksi` varchar(50) NOT NULL,
   `tanggal` date NOT NULL,
   `total_transaksi` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `transaksi_penjualan_multi`
---
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 INSERT INTO `transaksi_penjualan_multi` (`id_transaksi`, `kode_transaksi`, `tanggal`, `total_transaksi`) VALUES
 (15, 'TRX20260530151743', '2026-05-30', 13000),
@@ -172,109 +119,15 @@ INSERT INTO `transaksi_penjualan_multi` (`id_transaksi`, `kode_transaksi`, `tang
 (25, 'TRX20260530152135', '2026-05-30', 35000),
 (26, 'TRX20260530152353', '2026-05-30', 9500);
 
--- --------------------------------------------------------
-
---
 -- Table structure for table `users`
---
-
 CREATE TABLE `users` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `username` varchar(50) NOT NULL,
   `password` varchar(255) NOT NULL,
   `level` varchar(20) NOT NULL,
   `email` varchar(100) DEFAULT NULL,
   `reset_token` varchar(255) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `users`
---
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 INSERT INTO `users` (`id`, `username`, `password`, `level`, `email`, `reset_token`) VALUES
 (1, 'admin', '$2y$10$l7mhZlz3vupfgCjcTNhY3.P7Bl6YDFxpAJBv94doUNP7D8iEUlzZ6', 'admin', 'ikhwanmuarif71@gmail.com', '');
-
---
--- Indexes for dumped tables
---
-
---
--- Indexes for table `barang`
---
-ALTER TABLE `barang`
-  ADD PRIMARY KEY (`id_barang`);
-
---
--- Indexes for table `detail_transaksi`
---
-ALTER TABLE `detail_transaksi`
-  ADD PRIMARY KEY (`id_detail`);
-
---
--- Indexes for table `item_transaksi`
---
-ALTER TABLE `item_transaksi`
-  ADD PRIMARY KEY (`id_item`);
-
---
--- Indexes for table `transaksi_penjualan`
---
-ALTER TABLE `transaksi_penjualan`
-  ADD PRIMARY KEY (`id_transaksi`);
-
---
--- Indexes for table `transaksi_penjualan_multi`
---
-ALTER TABLE `transaksi_penjualan_multi`
-  ADD PRIMARY KEY (`id_transaksi`);
-
---
--- Indexes for table `users`
---
-ALTER TABLE `users`
-  ADD PRIMARY KEY (`id`);
-
---
--- AUTO_INCREMENT for dumped tables
---
-
---
--- AUTO_INCREMENT for table `barang`
---
-ALTER TABLE `barang`
-  MODIFY `id_barang` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
-
---
--- AUTO_INCREMENT for table `detail_transaksi`
---
-ALTER TABLE `detail_transaksi`
-  MODIFY `id_detail` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=49;
-
---
--- AUTO_INCREMENT for table `item_transaksi`
---
-ALTER TABLE `item_transaksi`
-  MODIFY `id_item` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
-
---
--- AUTO_INCREMENT for table `transaksi_penjualan`
---
-ALTER TABLE `transaksi_penjualan`
-  MODIFY `id_transaksi` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
-
---
--- AUTO_INCREMENT for table `transaksi_penjualan_multi`
---
-ALTER TABLE `transaksi_penjualan_multi`
-  MODIFY `id_transaksi` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
-
---
--- AUTO_INCREMENT for table `users`
---
-ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-COMMIT;
-
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
