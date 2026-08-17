@@ -29,8 +29,8 @@ if (is_dir($target_file)) {
 
 // If file exists and is a PHP file
 if (file_exists($target_file) && is_file($target_file)) {
-    // Set working directory to project root so relative includes work seamlessly
-    chdir(dirname(__DIR__));
+    // Set working directory to the target file's directory so relative paths resolve correctly
+    chdir(dirname($target_file));
     require $target_file;
 } else {
     // Fallback if file not found

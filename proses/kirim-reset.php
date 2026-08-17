@@ -2,8 +2,8 @@
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-require '../vendor/autoload.php';
-include '../config/koneksi.php';
+require __DIR__ . '/../vendor/autoload.php';
+include __DIR__ . '/../config/koneksi.php';
 
 $email = mysqli_real_escape_string($koneksi, $_POST['email'] ?? '');
 
