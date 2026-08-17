@@ -13,12 +13,12 @@ $koneksi = mysqli_init();
 
 // Enable SSL required by TiDB Cloud Serverless (port 4000 / tidbcloud.com)
 if (strpos($db_host, 'tidbcloud.com') !== false || $db_port === 4000 || getenv('DB_SSL') === 'true') {
+    mysqli_ssl_set($koneksi, NULL, NULL, NULL, NULL, NULL);
+    $ssl_flags = MYSQLI_CLIENT_SSL;
     if (defined('MYSQLI_CLIENT_SSL_DONT_VERIFY_SERVER_CERT')) {
-        $connected = @mysqli_real_connect($koneksi, $db_host, $db_user, $db_pass, $db_name, $db_port, NULL, MYSQLI_CLIENT_SSL_DONT_VERIFY_SERVER_CERT);
-    } else {
-        mysqli_ssl_set($koneksi, NULL, NULL, NULL, NULL, NULL);
-        $connected = @mysqli_real_connect($koneksi, $db_host, $db_user, $db_pass, $db_name, $db_port);
+        $ssl_flags |= MYSQLI_CLIENT_SSL_DONT_VERIFY_SERVER_CERT;
     }
+    $connected = @mysqli_real_connect($koneksi, $db_host, $db_user, $db_pass, $db_name, $db_port, NULL, $ssl_flags);
 } else {
     $connected = @mysqli_real_connect($koneksi, $db_host, $db_user, $db_pass, $db_name, $db_port);
 }
